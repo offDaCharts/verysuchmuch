@@ -81,7 +81,7 @@ $(function() {
             if(validate() && dogeWallet.length) {
                 $.get("/get_current_balance",
                     function(balance) {
-                        if (balance >= +$("#dogeAmount").val()) {
+                        if (+balance >= +$("#dogeAmount").val()) {
                             purchase(dogeAmount, dogeWallet);
                         } else {
                             $("#errorMessage").show();                
