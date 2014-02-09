@@ -41,8 +41,6 @@ $(function() {
             }
         };
 
-    $("#errorMessage").hide();                
-
     $("#dogeAmount").keyup(function() {
         if (isNaN(+$(this).val())) {
             $("#dollarAmount").val("");
