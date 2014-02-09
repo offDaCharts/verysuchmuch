@@ -31,13 +31,13 @@ def show_about():
 
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
-    #TODO: should depend on current rate and manual minimu
+    #TODO: should depend on current rate and manual minimum
     return str(1.6/1000)
 
-@app.route('/jwt/<dogeAmount>/<dogeAdress>')
+@app.route('/jwt/<dogeAmount>/<dogeAddress>')
 def getJWT(dogeAmount, dogeAddress):
     rate = float(get_dogeToDollarRate())
-    dollarAmount = math.ceil(dogeAmount * rate)
+    dollarAmount = math.ceil(float(dogeAmount) * rate)
     return jwt.encode(
         {
             "iss" : app.config['SELLER_ID'],
@@ -50,7 +50,7 @@ def getJWT(dogeAmount, dogeAddress):
               "description" : "Virtual chocolate cake to fill your virtual tummy",
               "price" : str(dollarAmount),
               "currencyCode" : "USD",
-              "sellerData": dogeAddress + "_" + dogeAmount
+              "sellerData": "{0}_{1}".format(dogeAddress,dogeAmount)
             }
         },
         app.config['SELLER_SECRET'])

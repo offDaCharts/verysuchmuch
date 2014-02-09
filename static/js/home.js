@@ -9,9 +9,9 @@ $(function() {
             failureHandler = function(purchaseActionError){
                 console.log("Purchase did not complete.", purchaseActionError);
             },
-            purchase = function(dogeAmount, dogeWallet){
+            purchase = function(dogeAmount, dogeAddress){
                 console.log("purchasing");
-                $.get("/jwt/" + dogeAmount + "/" + dogeWallet,
+                $.get("/jwt/" + dogeAmount + "/" + dogeAddress,
                     function(generatedJwt) {
                         console.log(generatedJwt);
                         google.payments.inapp.buy({
@@ -81,8 +81,9 @@ $(function() {
             if(validate() && dogeWallet.length) {
                 $.get("/get_current_balance",
                     function(balance) {
-                        if (+balance >= +$("#dogeAmount").val()) {
-                            purchase(dogeAmount, dogeWallet);
+                        balance = balance.replace(/\"/g, "");
+                        if (+balance >= +flooredDoge) {
+                            purchase(flooredDoge, dogeWallet);
                         } else {
                             $("#errorMessage").show();                
                             $("#errorMessage").text("Sorry, we currently only have " + balance +
