@@ -78,10 +78,16 @@ $(function() {
         $("#dollarAmount").val(dollarRoundedUpCent);
 
         if(validate()) {
-            purchase(dollarRoundedUpCent);
+            $.get("/get_current_balance",
+                function(balance) {
+                    if (balance >= +$("#dogeAmount").val()) {
+                        purchase(dollarRoundedUpCent);
+                    } else {
+                        $("#errorMessage").show();                
+                        $("#errorMessage").text("Sorry, we currently only have " + balance +
+                            "Doge left. We will restock soon.");                
+                    }
+            });
         }
     });
-
-
-
 });

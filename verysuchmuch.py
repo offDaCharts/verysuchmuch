@@ -26,7 +26,7 @@ def show_about():
     return render_template('about.html')
 
 
-@app.route('/jwt/<dollarAmount>', methods=["GET"])
+@app.route('/jwt/<dollarAmount>')
 def getJWT(dollarAmount):
     return jwt.encode(
         {
