@@ -3,6 +3,7 @@ import requests
 import jwt
 import time
 import os
+import math
 
 from flask import Flask, render_template, redirect, url_for, request, Response, abort, make_response, flash
 from pymongo import Connection
@@ -25,9 +26,15 @@ def show_home():
 def show_about():
     return render_template('about.html')
 
+@app.route('/dogeToDollarRate')
+def get_dogeToDollarRate():
+    #TODO: should depend on current rate and manual minimu
+    return str(1.6/1000)
 
-@app.route('/jwt/<dollarAmount>')
-def getJWT(dollarAmount):
+@app.route('/jwt/<dogeAmount>/<dogeWallet>')
+def getJWT(dogeAmount, dogeWallet):
+    rate = float(get_dogeToDollarRate())
+    dollarAmount = math.ceil(dogeAmount * rate)
     return jwt.encode(
         {
             "iss" : app.config['SELLER_ID'],
@@ -39,7 +46,8 @@ def getJWT(dollarAmount):
               "name" : "Piece of Cake",
               "description" : "Virtual chocolate cake to fill your virtual tummy",
               "price" : str(dollarAmount),
-              "currencyCode" : "USD"
+              "currencyCode" : "USD",
+              "sellerData": dogeWallet + "_" + dogeAmount
             }
         },
         app.config['SELLER_SECRET'])
