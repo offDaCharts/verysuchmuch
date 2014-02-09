@@ -46,9 +46,12 @@ def getJWT(dollarAmount):
 
 @app.route('/purchase_success', methods=["POST"])
 def successful_purchase():
-    print request.args['jwt']
-    print jwt.decode(request.args['jwt'], app.config['SELLER_SECRET'])
-    return '200'
+    response_jwt = jwt.decode(request.form['jwt'], app.config['SELLER_SECRET'])
+    print response_jwt
+    resp = make_response(json.dumps(response_jwt['response']['orderId']), 200)
+    resp.headers.extend({})
+    return resp
+    return 201
 
 # DogeAPI Routes
 
@@ -68,4 +71,4 @@ def send_doge(amount=None, address=None):
 
 if __name__ == '__main__':
 	app.debug=True
-	app.run(host='0.0.0.0', processes=3)
+	app.run(host='0.0.0.0', port=6666,  processes=3)
