@@ -39,11 +39,16 @@ def getJWT(dollarAmount):
               "name" : "Piece of Cake",
               "description" : "Virtual chocolate cake to fill your virtual tummy",
               "price" : str(dollarAmount),
-              "currencyCode" : "USD",
-              "sellerData" : "user_id:1224245,offer_code:3098576987,affiliate:aksdfbovu9j"
+              "currencyCode" : "USD"
             }
         },
         app.config['SELLER_SECRET'])
+
+@app.route('/purchase_success', methods=["POST"])
+def successful_purchase():
+    print request.args['jwt']
+    print jwt.decode(request.args['jwt'], app.config['SELLER_SECRET'])
+    return '200'
 
 # DogeAPI Routes
 

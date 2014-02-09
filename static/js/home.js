@@ -7,7 +7,7 @@ $(function() {
         },
         //Failure handler
         failureHandler = function(purchaseActionError){
-            console.log("Purchase did not complete.");
+            console.log("Purchase did not complete.", purchaseActionError);
         },
         purchase = function(dollarAmount){
             console.log("purchasing");
