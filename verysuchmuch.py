@@ -17,6 +17,9 @@ app.secret_key = 'this key is so secret'
 
 DOGEPAY_API_KEY = '1b94bu21lq55xg1xct9z4trgnzc'
 DOGEPAY_BASE_URL= 'https://www.dogeapi.com/wow/?api_key={0}&a='.format(DOGEPAY_API_KEY)
+
+connection = Connection()
+db = connection['verysuchmuch']
       
 @app.route('/')
 def show_home():
@@ -31,8 +34,8 @@ def get_dogeToDollarRate():
     #TODO: should depend on current rate and manual minimu
     return str(1.6/1000)
 
-@app.route('/jwt/<dogeAmount>/<dogeWallet>')
-def getJWT(dogeAmount, dogeWallet):
+@app.route('/jwt/<dogeAmount>/<dogeAdress>')
+def getJWT(dogeAmount, dogeAddress):
     rate = float(get_dogeToDollarRate())
     dollarAmount = math.ceil(dogeAmount * rate)
     return jwt.encode(
@@ -47,7 +50,7 @@ def getJWT(dogeAmount, dogeWallet):
               "description" : "Virtual chocolate cake to fill your virtual tummy",
               "price" : str(dollarAmount),
               "currencyCode" : "USD",
-              "sellerData": dogeWallet + "_" + dogeAmount
+              "sellerData": dogeAddress + "_" + dogeAmount
             }
         },
         app.config['SELLER_SECRET'])
@@ -55,11 +58,22 @@ def getJWT(dogeAmount, dogeWallet):
 @app.route('/purchase_success', methods=["POST"])
 def successful_purchase():
     response_jwt = jwt.decode(request.form['jwt'], app.config['SELLER_SECRET'])
-    print response_jwt
-    resp = make_response(json.dumps(response_jwt['response']['orderId']), 200)
-    resp.headers.extend({})
-    return resp
-    return 201
+    dogeAddress, dogeAmount = response_jwt['request']['sellerData'].split("_")
+    if send_doge(amount=dogeAmount,address=dogeAddress):
+        db['transactions'].insert({
+                                   'time' : response_jwt['iat'],
+                                   'dollarAmount' : response_jwt['request']['price'],
+                                   'dogeAmount' : dogeAmount,
+                                   'dogeAddress': dogeAddress
+                                   })
+        resp = make_response(json.dumps(response_jwt['response']['orderId']), 200)
+        resp.headers.extend({})
+        return resp
+    else:
+        resp = make_response(json.dumps("No Transaction Executed."), 501)
+        resp.headers.extend({})
+        return resp
+        
 
 # DogeAPI Routes
 
@@ -70,10 +84,12 @@ def get_balance():
 def send_doge(amount=None, address=None):
     print amount, address
     if address == None or amount == None or amount < 5:
-        return 'Invalid Payment Parameters'
+        return False
     amount = (amount/.995)
-    return requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address)).text
-
+    dogeAPIResponse = requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address)).text
+    if len(dogeAPIResponse):
+        return True
+    return False
 # App Configuration
 # This section holds all application specific configuration options.
 
