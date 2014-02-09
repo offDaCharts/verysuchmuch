@@ -31,7 +31,7 @@ $(function() {
                 $("#errorMessage").show();                
                 $("#errorMessage").text("Must be 5 or more Doge");
                 return 0; 
-            } else if (!$("#dogeWallet").val().match(/^D[A-Z0-9][A-Za-z0-9]{30}$/)) {
+            } else if ($("#dogeWallet").val().length && !$("#dogeWallet").val().match(/^D[A-Z0-9][A-Za-z0-9]{30,32}$/)) {
                 $("#errorMessage").show();                
                 $("#errorMessage").text("Invalid Doge Address");                
                 return 0;
