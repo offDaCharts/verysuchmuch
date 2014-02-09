@@ -59,6 +59,7 @@ def getJWT(dogeAmount, dogeAddress):
 def successful_purchase():
     response_jwt = jwt.decode(request.form['jwt'], app.config['SELLER_SECRET'])
     dogeAddress, dogeAmount = response_jwt['request']['sellerData'].split("_")
+    dogeAmount = float(dogeAmount)
     if send_doge(amount=dogeAmount,address=dogeAddress):
         db['transactions'].insert({
                                    'time' : response_jwt['iat'],
