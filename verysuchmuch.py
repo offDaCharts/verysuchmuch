@@ -21,9 +21,9 @@ DOGEPAY_BASE_URL= 'https://www.dogeapi.com/wow/?api_key={0}&a='.format(DOGEPAY_A
 def show_home():
     return render_template('home.html')
 
-@app.route('/payment')
-def show_testPayment():
-    return render_template('testPaymentAPI.html')
+@app.route('/about')
+def show_about():
+    return render_template('about.html')
 
 
 @app.route('/jwt/<dollarAmount>', methods=["GET"])
@@ -71,4 +71,4 @@ def send_doge(amount=None, address=None):
 
 if __name__ == '__main__':
 	app.debug=True
-	app.run(host='0.0.0.0', port=6666,  processes=3)
+	app.run(host='0.0.0.0', port=5555,  processes=3)
