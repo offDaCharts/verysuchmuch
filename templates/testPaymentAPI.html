@@ -1,0 +1,11 @@
+{% extends "basePage.html" %}
+{% block content %}
+  <body>
+    <button class="buy-button" id="buybutton1" name="buy" type="button">Buy</button>
+  </body>
+{% endblock %}
+{%block javascript%}
+    <script src="https://sandbox.google.com/checkout/inapp/lib/buy.js"></script>
+    <script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="/static/js/testPaymentAPI.js"></script>
+{%endblock%}

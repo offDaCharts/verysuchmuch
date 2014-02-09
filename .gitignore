@@ -1,3 +1,5 @@
 env/
 .project
 .pydevproject
+sellerinfo.py
+*.pyc
