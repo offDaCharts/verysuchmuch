@@ -26,8 +26,8 @@ def show_testPayment():
     return render_template('testPaymentAPI.html')
 
 
-@app.route('/jwt', methods=["GET"])
-def getJWT():
+@app.route('/jwt/<dollarAmount>', methods=["GET"])
+def getJWT(dollarAmount):
     return jwt.encode(
         {
             "iss" : app.config['SELLER_ID'],
@@ -38,7 +38,7 @@ def getJWT():
             "request" :{
               "name" : "Piece of Cake",
               "description" : "Virtual chocolate cake to fill your virtual tummy",
-              "price" : "10.50",
+              "price" : str(dollarAmount),
               "currencyCode" : "USD",
               "sellerData" : "user_id:1224245,offer_code:3098576987,affiliate:aksdfbovu9j"
             }
