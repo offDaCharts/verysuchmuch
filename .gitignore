@@ -3,3 +3,4 @@ env/
 .pydevproject
 sellerinfo.py
 *.pyc
+*.DS_Store
