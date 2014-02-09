@@ -45,6 +45,19 @@ def getJWT(dollarAmount):
         },
         app.config['SELLER_SECRET'])
 
+# DogeAPI Routes
+
+@app.route('/get_current_balance')
+def get_balance():
+    return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL)).text
+
+def send_doge(amount=None, address=None):
+    print amount, address
+    if address == None or amount == None or amount < 5:
+        return 'Invalid Payment Parameters'
+    amount = (amount/.995)
+    return requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address)).text
+
 # App Configuration
 # This section holds all application specific configuration options.
 
