@@ -37,7 +37,7 @@ def get_dogeToDollarRate():
 @app.route('/jwt/<dogeAmount>/<dogeAddress>')
 def getJWT(dogeAmount, dogeAddress):
     rate = float(get_dogeToDollarRate())
-    dollarAmount = math.ceil(float(dogeAmount) * rate)
+    dollarAmount = math.ceil(100 * (float(dogeAmount) * rate)) / 100
     return jwt.encode(
         {
             "iss" : app.config['SELLER_ID'],
@@ -46,8 +46,8 @@ def getJWT(dogeAmount, dogeAddress):
             "exp" : int(time.time() + 3600),
             "iat" : int(time.time()),
             "request" :{
-              "name" : "Piece of Cake",
-              "description" : "Virtual chocolate cake to fill your virtual tummy",
+              "name" : str(dogeAmount) + "Doge",
+              "description" : "Currency out of this World!",
               "price" : str(dollarAmount),
               "currencyCode" : "USD",
               "sellerData": "{0}_{1}".format(dogeAddress,dogeAmount)
