@@ -55,7 +55,7 @@ def getJWT(dogeAmount, dogeAddress):
         },
         app.config['SELLER_SECRET'])
 
-@app.route('/purchase_success', methods=["POST"])
+@app.route('/success_jwt', methods=["POST"])
 def successful_purchase():
     response_jwt = jwt.decode(request.form['jwt'], app.config['SELLER_SECRET'])
     dogeAddress, dogeAmount = response_jwt['request']['sellerData'].split("_")

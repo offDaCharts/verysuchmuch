@@ -3,7 +3,10 @@ $(function() {
         var dollarToDogeRate = 1/dogeToDollarRate;
             //Success handler
             successHandler = function(purchaseAction){
-                console.log("Purchase completed successfully.");
+                console.log("Purchase completed successfully.", purchaseAction);
+                $.post("/success_jwt", {'jwt': purchaseAction.jwt}, function (data) {
+                   //Here we'll tell the user to check their doge wallet for the Doge! 
+                });
             },
             //Failure handler
             failureHandler = function(purchaseActionError){
