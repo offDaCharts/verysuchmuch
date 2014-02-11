@@ -89,7 +89,7 @@ $(function() {
                             purchase(flooredDoge, dogeWallet);
                         } else {
                             $("#errorMessage").show();                
-                            $("#errorMessage").text("Sorry, we currently only have " + balance +
+                            $("#errorMessage").text("Sorry, we currently only have " + Math.floor(balance) +
                                 "Doge left. We will restock soon.");                
                         }
                 });

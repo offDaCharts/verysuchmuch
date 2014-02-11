@@ -31,10 +31,10 @@ def show_about():
 
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
-    manualFloor = 1.7
-    marketMarkup = float(get_market_dogeToDollarRate()) * 1.2
+    manualFloor = 1.70
+    marketMarkup = math.ceil(float(get_market_dogeToDollarRate()) * 1.2 * 100) / 100
     rate = marketMarkup if marketMarkup > manualFloor else manualFloor
-    return str(rate/1000)
+    return str(rate / 1000)
 
 @app.route('/jwt/<dogeAmount>/<dogeAddress>')
 def getJWT(dogeAmount, dogeAddress):
