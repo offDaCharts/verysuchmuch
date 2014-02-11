@@ -83,10 +83,10 @@ def successful_purchase():
 
 @app.route('/get_current_balance')
 def get_balance():
-    return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL)).text
+    return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL), verify=False).text
 
 def get_market_dogeToDollarRate():
-    return requests.get('{0}get_current_price&amount_doge=1000'.format(DOGEPAY_BASE_URL)).text
+    return requests.get('{0}get_current_price&amount_doge=1000'.format(DOGEPAY_BASE_URL), verify=False).text
 
 def send_doge(amount=None, address=None):
     print amount, address
