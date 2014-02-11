@@ -44,6 +44,8 @@ $(function() {
                 }
             };
 
+        $("#dollarAmount").attr("placeholder", "Price: " + dogeToDollarRate*1000 + "$/1kDoge"); 
+
         $("#dogeAmount").keyup(function() {
             if (isNaN(+$(this).val())) {
                 $("#dollarAmount").val("");

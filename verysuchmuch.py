@@ -32,7 +32,7 @@ def show_about():
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
     #TODO: should depend on current rate and manual minimum
-    return str(1.6/1000)
+    return str(1.7/1000)
 
 @app.route('/jwt/<dogeAmount>/<dogeAddress>')
 def getJWT(dogeAmount, dogeAddress):
