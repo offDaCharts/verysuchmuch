@@ -31,8 +31,10 @@ def show_about():
 
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
-    #TODO: should depend on current rate and manual minimum
-    return str(1.7/1000)
+    manualFloor = 1.7
+    marketMarkup = float(get_market_dogeToDollarRate()) * 1.2
+    rate = marketMarkup if marketMarkup > manualFloor else manualFloor
+    return str(rate/1000)
 
 @app.route('/jwt/<dogeAmount>/<dogeAddress>')
 def getJWT(dogeAmount, dogeAddress):
@@ -82,6 +84,9 @@ def successful_purchase():
 @app.route('/get_current_balance')
 def get_balance():
     return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL)).text
+
+def get_market_dogeToDollarRate():
+    return requests.get('{0}get_current_price&amount_doge=1000'.format(DOGEPAY_BASE_URL)).text
 
 def send_doge(amount=None, address=None):
     print amount, address
