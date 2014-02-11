@@ -3,20 +3,18 @@ $(function() {
         var dollarToDogeRate = 1/dogeToDollarRate;
             //Success handler
             successHandler = function(purchaseAction){
-                console.log("Purchase completed successfully.", purchaseAction);
                 $.post("/success_jwt", {'jwt': purchaseAction.jwt}, function (data) {
                    //Here we'll tell the user to check their doge wallet for the Doge! 
                 });
             },
             //Failure handler
             failureHandler = function(purchaseActionError){
+                alert("So... Something went wrong. The payment has been canceled and you won't be charged. If the problem persists, email us at support@verysuchmuch.com")
                 console.log("Purchase did not complete.", purchaseActionError);
             },
             purchase = function(dogeAmount, dogeAddress){
-                console.log("purchasing");
                 $.get("/jwt/" + dogeAmount + "/" + dogeAddress,
                     function(generatedJwt) {
-                        console.log(generatedJwt);
                         google.payments.inapp.buy({
                             'jwt'     : generatedJwt,
                             'success' : successHandler,

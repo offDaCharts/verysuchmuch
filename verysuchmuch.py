@@ -65,7 +65,8 @@ def successful_purchase():
                                    'time' : response_jwt['iat'],
                                    'dollarAmount' : response_jwt['request']['price'],
                                    'dogeAmount' : dogeAmount,
-                                   'dogeAddress': dogeAddress
+                                   'dogeAddress': dogeAddress,
+                                   'googleOrderID' : response_jwt['response']['orderId']
                                    })
         resp = make_response(json.dumps(response_jwt['response']['orderId']), 200)
         resp.headers.extend({})
