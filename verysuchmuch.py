@@ -4,6 +4,7 @@ import jwt
 import time
 import os
 import math
+import re
 
 from flask import Flask, render_template, redirect, url_for, request, Response, abort, make_response, flash
 from pymongo import Connection
@@ -32,7 +33,7 @@ def show_about():
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
     manualFloor = 2.20
-    marketMarkup = math.ceil(float(get_market_dogeToDollarRate()) * 1.25 * 100) / 100
+    marketMarkup = math.ceil(float(get_doge_pay_price()) * 1.25 * 100) / 100
     rate = marketMarkup if marketMarkup > manualFloor else manualFloor
     return str(rate / 1000)
 
@@ -78,6 +79,20 @@ def successful_purchase():
         resp.headers.extend({})
         return resp
         
+#Dogepay Route
+
+@app.route('/get_doge_pay_price')
+def get_doge_pay_price():
+    responseHtml = requests.get('http://www.dogepay.com', verify=False).text
+    responseHtml = re.sub('[<>\n"\']', '', responseHtml)
+    try:
+        pricePerMegaDoge = re.match(r'[^$]*\d[^L]*(Last Value)([^$]*)(\$)([\d,.]+)', responseHtml).group(4).replace(',','')
+        rate = str(float(pricePerMegaDoge)/1000)
+    except:
+        rate = get_market_dogeToDollarRate()
+    return rate
+    
+
 
 # DogeAPI Routes
 
