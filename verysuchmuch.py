@@ -32,8 +32,8 @@ def show_about():
 
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
-    manualFloor = 2.20
-    marketMarkup = math.ceil(float(get_doge_pay_price()) * 1.25 * 100) / 100
+    manualFloor = 2.33
+    marketMarkup = math.ceil(float(get_doge_pay_price()) * 1.3 * 100) / 100
     rate = marketMarkup if marketMarkup > manualFloor else manualFloor
     return str(rate / 1000)
 

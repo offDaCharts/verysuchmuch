@@ -85,6 +85,7 @@ $(function() {
                 $.get("/get_current_balance",
                     function(balance) {
                         balance = balance.replace(/\"/g, "");
+                        balance = +balance * 0.995;
                         if (+balance >= +flooredDoge) {
                             purchase(flooredDoge, dogeWallet);
                         } else {
