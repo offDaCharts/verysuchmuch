@@ -99,5 +99,13 @@ $(function() {
                 $("#errorMessage").text("Please enter a Doge Address");                
             }
         });
+        $.get("/get_current_balance", 
+            function(balance){
+                balance = balance.replace(/\"/g, "");
+                if (balance < 1000) {
+                    $(".sold-out").modal('show');
+                    $("#purchaseButton").prop('disabled', true);
+                }
+        });
     });
 });

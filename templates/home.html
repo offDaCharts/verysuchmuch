@@ -38,6 +38,20 @@
     <div class="alert alert-danger" style="display: none;" id="errorMessage"></div>
   </div>
 </div>
+<div class="modal fade sold-out">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h2 class="modal-title">We're out!</h2>
+      </div>
+      <div class="modal-body">
+        <h4>The Demand for Doge at a reasonable price is too high!</h4>
+        <p>Feel free to peruse the site and its features, but the buy button in disabled.</p>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {% endblock %}
 {% block javascript %}
     <script src="https://wallet.google.com/inapp/lib/buy.js"></script>
