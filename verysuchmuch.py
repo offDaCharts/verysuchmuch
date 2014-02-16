@@ -32,7 +32,7 @@ def show_about():
 
 @app.route('/dogeToDollarRate')
 def get_dogeToDollarRate():
-    manualFloor = 1.85
+    manualFloor = 2.00
     percentMarkup = 35
     marketMarkup = math.ceil(float(get_doge_pay_price()) * (1 + float(percentMarkup)/100) * 100) / 100
     rate = marketMarkup if marketMarkup > manualFloor else manualFloor
@@ -47,11 +47,11 @@ def getJWT(dogeAmount, dogeAddress):
             "iss" : app.config['SELLER_ID'],
             "aud" : "Google",
             "typ" : "google/payments/inapp/item/v1",
-            "exp" : int(time.time() + 3600),
+            "exp" : int(time.time() + 60),
             "iat" : int(time.time()),
             "request" :{
-              "name" : str(dogeAmount) + "Doge",
-              "description" : "Currency out of this World!",
+              "name" : str(dogeAmount) + " Doge",
+              "description" : "Tickets to the Moon!",
               "price" : str(dollarAmount),
               "currencyCode" : "USD",
               "sellerData": "{0}_{1}".format(dogeAddress,dogeAmount)
