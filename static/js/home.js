@@ -4,7 +4,8 @@ $(function() {
             //Success handler
             successHandler = function(purchaseAction){
                 $.post("/success_jwt", {'jwt': purchaseAction.jwt}, function (data) {
-                   //Here we'll tell the user to check their doge wallet for the Doge! 
+                   //Here we'll tell the user to check their doge wallet for the Doge!
+                    document.location.href = '/thankyou';
                 });
             },
             //Failure handler

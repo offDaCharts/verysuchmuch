@@ -26,6 +26,10 @@ db = connection['verysuchmuch']
 def show_home():
     return render_template('home.html')
 
+@app.route('/thankyou')
+def show_thankyou():
+    return render_template('thankyou.html')
+
 @app.route('/about')
 def show_about():
     return render_template('about.html')
