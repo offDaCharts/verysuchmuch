@@ -51,7 +51,7 @@ def getJWT(dogeAmount, dogeAddress):
             "iss" : app.config['SELLER_ID'],
             "aud" : "Google",
             "typ" : "google/payments/inapp/item/v1",
-            "exp" : int(time.time() + 60),
+            "exp" : int(time.time() + 3600),
             "iat" : int(time.time()),
             "request" :{
               "name" : str(dogeAmount) + " Doge",
