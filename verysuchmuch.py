@@ -6,6 +6,12 @@ import os
 import math
 import re
 
+import imaplib
+
+# import urllib2
+# import poplib
+# from email import parser
+
 from flask import Flask, render_template, redirect, url_for, request, Response, abort, make_response, flash
 from pymongo import Connection
 from functools import wraps
@@ -117,6 +123,73 @@ def send_doge(amount=None, address=None):
     if len(dogeAPIResponse):
         return True
     return False
+
+
+# Mail Routes
+
+def get_mail():
+    mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
+    mail.login('verysuchmuch', 'password')
+    mail.select('wallet')
+
+    typ, data = mail.search(None, 'UNSEEN')
+    for num in data[0].split():
+        typ, data = mail.fetch(num, '(RFC822)')
+        print 'Message %s\n%s\n' % (num, data[0][1])
+
+    mail.close()
+    mail.logout()
+
+#other tries
+# @app.route('/get_gmail_inbox_feed')
+# def get_gmail_inbox_feed():
+#     # create a password manager
+#     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+
+#     # Add the username and password.
+#     # If we knew the realm, we could use it instead of None.
+#     top_level_url = "https://mail.google.com/mail/feed/atom/wallet"
+#     password = "*******"
+#     password_mgr.add_password(None, top_level_url, "robqthames@gmail.com", password)
+
+#     handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+
+#     # create "opener" (OpenerDirector instance)
+#     opener = urllib2.build_opener(handler)
+
+#     # use the opener to fetch a URL
+#     test = opener.open(top_level_url)
+#     print test
+
+#     # Install the opener.
+#     # Now all calls to urllib2.urlopen use our opener.
+#     urllib2.install_opener(opener)
+
+#     req = urllib2.Request(top_level_url)
+#     response = urllib2.urlopen(req)
+#     the_page = response.read()
+#     return the_page
+
+# @app.route('/get_gmail_over_pop')
+# def get_gmail_over_pop():
+#     pop_conn = poplib.POP3_SSL('pop.gmail.com')
+#     pop_conn.user('verysuchmuch@gmail.com')
+#     pop_conn.pass_('*************')
+
+#     print "connecting"
+#     #Get messages from server:
+#     messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
+#     # Concat message pieces:
+#     messages = ["\n".join(mssg[1]) for mssg in messages]
+#     #Parse message intom an email object:
+#     messages = [parser.Parser().parsestr(mssg) for mssg in messages]
+#     for message in messages:
+#         print message['subject']
+#     pop_conn.quit()
+#     return "testing"
+
+
+
 # App Configuration
 # This section holds all application specific configuration options.
 
