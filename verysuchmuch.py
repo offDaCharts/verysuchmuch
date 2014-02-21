@@ -119,7 +119,8 @@ def send_doge(amount=None, address=None):
     if address == None or amount == None or amount < 5:
         return False
     amount = (amount/.995)
-    dogeAPIResponse = requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address)).text
+    #dogeAPIResponse = requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address)).text
+    dogeAPIResponse = requests.get('{0}withdraw&amount={1}&payment_address={2}'.format(DOGEPAY_BASE_URL, amount, address), verify=False).text
     if len(dogeAPIResponse):
         return True
     return False
@@ -127,18 +128,49 @@ def send_doge(amount=None, address=None):
 
 # Mail Routes
 
+@app.route('/get_mail')
 def get_mail():
     mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
-    mail.login('verysuchmuch', 'password')
+    mail.login('verysuchmuch', app.config['EMAIL_PASSWORD'])
     mail.select('wallet')
 
     typ, data = mail.search(None, 'UNSEEN')
     for num in data[0].split():
+        validFlag = True
         typ, data = mail.fetch(num, '(RFC822)')
-        print 'Message %s\n%s\n' % (num, data[0][1])
+        message = 'Message %s\n%s\n' % (num, data[0][1])
+        #match = re.match(r'google\.com: domain of noreply@wallet\.google\.com designates [^\s]* as permitted sender', message)
+        header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
+        body = message[len(header):]
+        print "here"
+        if not "wallet.google" in header:
+            print "false"
+            validFlag = False
+
+        amount = re.match(r'([^$]*)(\$)([\d,.]+)', body)
+        if amount is None:
+            print "false"
+            validFlag = False
+        else:
+            amount = amount.group(3)
+
+        if validFlag:
+            #send doge
+            print amount
+            amount = float(amount)
+            dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
+            print str(dogeAmount)
+
+            #TODO need to have people give email and address to create email to address hash in db
+            quinsDogeWallet = "DFXrRgnxyVhxYry234ctDoGwVXXgBUKGYM"
+
+            print "sending"
+            send_doge(dogeAmount, quinsDogeWallet)
 
     mail.close()
     mail.logout()
+    print "done"
+    return "done"
 
 #other tries
 # @app.route('/get_gmail_inbox_feed')
