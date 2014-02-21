@@ -147,12 +147,15 @@ def get_mail():
             print "false"
             validFlag = False
 
-        amount = re.match(r'([^$]*)(\$)([\d,.]+)', body)
-        if amount is None:
+        bodyMatch = re.match(r'([^$]*)(\$)([\d,.]+)([^<]*<)([^>]*)', body)
+        if bodyMatch is None:
             print "false"
             validFlag = False
         else:
-            amount = amount.group(3)
+            amount = bodyMatch.group(3)
+            email = bodyMatch.group(5)
+            print amount
+            print email
 
         if validFlag:
             #send doge
@@ -164,13 +167,13 @@ def get_mail():
             #TODO need to have people give email and address to create email to address hash in db
             quinsDogeWallet = "DFXrRgnxyVhxYry234ctDoGwVXXgBUKGYM"
 
-            print "sending"
-            send_doge(dogeAmount, quinsDogeWallet)
+            #print "sending"
+            #send_doge(dogeAmount, quinsDogeWallet)
 
     mail.close()
     mail.logout()
     print "done"
-    return "done"
+    return body
 
 #other tries
 # @app.route('/get_gmail_inbox_feed')
