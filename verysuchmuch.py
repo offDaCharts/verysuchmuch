@@ -148,47 +148,48 @@ def send_doge(amount=None, address=None):
 
 # Mail Routes
 
+def parse_email(message):
+    collection = 'emailAndWallet'
+    validFlag = True
+    header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
+    body = message[len(header):]
+    if not "wallet.google" in header:
+        validFlag = False
+
+    bodyMatch = re.match(r'([^$]*)(\$)([\d,.]+)([^<]*<)([^>]*)', body)
+    if bodyMatch is None:
+        validFlag = False
+    else:
+        amount = bodyMatch.group(3)
+        email = bodyMatch.group(5).lower()
+        print amount
+        print email
+
+    if validFlag:
+        amount = float(amount)
+        dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
+
+        emailAndWalletDoc = db[collection].find({'email': email})[0]
+        dogeAddress = emailAndWalletDoc['dogeAddress']
+        db[collection].remove({'_id': emailAndWalletDoc['_id']})
+
+        print str(dogeAmount)
+        print dogeAddress
+        #print "sending"
+        #send_doge(dogeAmount, dogeAddress)
+
+
 @app.route('/get_mail')
 def get_mail():
-    collection = 'emailAndWallet'
     mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
     mail.login('verysuchmuch', app.config['EMAIL_PASSWORD'])
     mail.select('wallet')
 
     typ, data = mail.search(None, 'UNSEEN')
     for num in data[0].split():
-        validFlag = True
         typ, data = mail.fetch(num, '(RFC822)')
         message = 'Message %s\n%s\n' % (num, data[0][1])
-        header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
-        body = message[len(header):]
-        if not "wallet.google" in header:
-            validFlag = False
-
-        bodyMatch = re.match(r'([^$]*)(\$)([\d,.]+)([^<]*<)([^>]*)', body)
-        if bodyMatch is None:
-            validFlag = False
-        else:
-            amount = bodyMatch.group(3)
-            email = bodyMatch.group(5).lower()
-            print amount
-            print email
-
-        if validFlag:
-            #send doge
-            amount = float(amount)
-            dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
-            print str(dogeAmount)
-
-            emailAndWalletDoc = db[collection].find({'email': email})[0]
-            print emailAndWalletDoc
-            dogeAddress = emailAndWalletDoc['dogeAddress']
-            print dogeAddress
-
-            db[collection].remove({'_id': emailAndWalletDoc['_id']})
-
-            #print "sending"
-            #send_doge(dogeAmount, dogeAddress)
+        parse_email(message)
 
     mail.close()
     mail.logout()
