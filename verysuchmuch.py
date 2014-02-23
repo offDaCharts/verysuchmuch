@@ -54,7 +54,7 @@ def getJWT(dogeAmount, dogeAddress):
             "iss" : app.config['SELLER_ID'],
             "aud" : "Google",
             "typ" : "google/payments/inapp/item/v1",
-            "exp" : int(time.time() + 3600),
+            "exp" : int(time.time()) + 3600,
             "iat" : int(time.time()),
             "request" :{
               "name" : str(dogeAmount) + " Doge",
@@ -78,13 +78,26 @@ def addEmailandWalletPair(emailAddress, dogeAddress):
         print "There already exists a current order with this email or doge address"
         print "Please complete your order or wait 30min to cancel"
     else: 
+        minutesTilExpire = 30
         db[collection].insert({
             'email' : emailAddress,
             'dogeAddress' : dogeAddress,
             'initTime' : int(time.time()),
-            'expTime' : int(time.time() + 3600)
+            'expTime' : int(time.time()) + minutesTilExpire*60
         })
     return str(insertSuccess)
+
+def clearExpiredOrders():
+    print "Checking for expired orders"
+    collection = 'emailAndWallet'
+    cursor = db[collection].find()
+    for doc in cursor:
+        if time.time() > doc['expTime']:
+            print "Removing expired order"
+            db[collection].remove({'_id': doc['_id']})
+    print "Expired orders checked and cleared"
+
+
 
 @app.route('/success_jwt', methods=["POST"])
 def successful_purchase():
@@ -180,7 +193,7 @@ def parse_email(message):
         #print "sending"
         #send_doge(dogeAmount, dogeAddress)
 
-def get_mail():
+def check_mail():
     print "Checking mail"
     mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
     mail.login('verysuchmuch', app.config['EMAIL_PASSWORD'])
@@ -198,8 +211,10 @@ def get_mail():
     return "done"
 
 def mail_cron_job():
+    #Runs every minute
     secondsWait = 60
-    get_mail()
+    check_mail()
+    clearExpiredOrders()
     Timer(secondsWait, mail_cron_job, ()).start()
 
 mail_cron_job()
