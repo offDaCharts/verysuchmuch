@@ -69,6 +69,26 @@ def getJWT(dogeAmount, dogeAddress):
         },
         app.config['SELLER_SECRET'])
 
+@app.route('/emailAndWallet/<emailAddress>/<dogeAddress>')
+def addEmailandWalletPair(emailAddress, dogeAddress):
+    collection = 'emailAndWallet'
+    insertSuccess = True
+    print emailAddress
+    print dogeAddress
+    if (db[collection].find({'email': emailAddress.lower()}).count() is not 0 or
+     db[collection].find({'dogeAddress': dogeAddress}).count() is not 0):
+        insertSuccess = False
+        print "There already exists a current order with this email or doge address"
+        print "Please complete your order or wait 30min to cancel"
+    else: 
+        db[collection].insert({
+            'email' : emailAddress,
+            'dogeAddress' : dogeAddress,
+            'initTime' : int(time.time()),
+            'expTime' : int(time.time() + 3600)
+        })
+    return str(insertSuccess)
+
 @app.route('/success_jwt', methods=["POST"])
 def successful_purchase():
     response_jwt = jwt.decode(request.form['jwt'], app.config['SELLER_SECRET'])
@@ -130,6 +150,7 @@ def send_doge(amount=None, address=None):
 
 @app.route('/get_mail')
 def get_mail():
+    collection = 'emailAndWallet'
     mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
     mail.login('verysuchmuch', app.config['EMAIL_PASSWORD'])
     mail.select('wallet')
@@ -139,90 +160,39 @@ def get_mail():
         validFlag = True
         typ, data = mail.fetch(num, '(RFC822)')
         message = 'Message %s\n%s\n' % (num, data[0][1])
-        #match = re.match(r'google\.com: domain of noreply@wallet\.google\.com designates [^\s]* as permitted sender', message)
         header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
         body = message[len(header):]
-        print "here"
         if not "wallet.google" in header:
-            print "false"
             validFlag = False
 
         bodyMatch = re.match(r'([^$]*)(\$)([\d,.]+)([^<]*<)([^>]*)', body)
         if bodyMatch is None:
-            print "false"
             validFlag = False
         else:
             amount = bodyMatch.group(3)
-            email = bodyMatch.group(5)
+            email = bodyMatch.group(5).lower()
             print amount
             print email
 
         if validFlag:
             #send doge
-            print amount
             amount = float(amount)
             dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
             print str(dogeAmount)
 
-            #TODO need to have people give email and address to create email to address hash in db
-            quinsDogeWallet = "DFXrRgnxyVhxYry234ctDoGwVXXgBUKGYM"
+            emailAndWalletDoc = db[collection].find({'email': email})[0]
+            print emailAndWalletDoc
+            dogeAddress = emailAndWalletDoc['dogeAddress']
+            print dogeAddress
+
+            db[collection].remove({'_id': emailAndWalletDoc['_id']})
 
             #print "sending"
-            #send_doge(dogeAmount, quinsDogeWallet)
+            #send_doge(dogeAmount, dogeAddress)
 
     mail.close()
     mail.logout()
-    print "done"
-    return body
-
-#other tries
-# @app.route('/get_gmail_inbox_feed')
-# def get_gmail_inbox_feed():
-#     # create a password manager
-#     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-
-#     # Add the username and password.
-#     # If we knew the realm, we could use it instead of None.
-#     top_level_url = "https://mail.google.com/mail/feed/atom/wallet"
-#     password = "*******"
-#     password_mgr.add_password(None, top_level_url, "robqthames@gmail.com", password)
-
-#     handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-
-#     # create "opener" (OpenerDirector instance)
-#     opener = urllib2.build_opener(handler)
-
-#     # use the opener to fetch a URL
-#     test = opener.open(top_level_url)
-#     print test
-
-#     # Install the opener.
-#     # Now all calls to urllib2.urlopen use our opener.
-#     urllib2.install_opener(opener)
-
-#     req = urllib2.Request(top_level_url)
-#     response = urllib2.urlopen(req)
-#     the_page = response.read()
-#     return the_page
-
-# @app.route('/get_gmail_over_pop')
-# def get_gmail_over_pop():
-#     pop_conn = poplib.POP3_SSL('pop.gmail.com')
-#     pop_conn.user('verysuchmuch@gmail.com')
-#     pop_conn.pass_('*************')
-
-#     print "connecting"
-#     #Get messages from server:
-#     messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
-#     # Concat message pieces:
-#     messages = ["\n".join(mssg[1]) for mssg in messages]
-#     #Parse message intom an email object:
-#     messages = [parser.Parser().parsestr(mssg) for mssg in messages]
-#     for message in messages:
-#         print message['subject']
-#     pop_conn.quit()
-#     return "testing"
-
+    return "done"
 
 
 # App Configuration
