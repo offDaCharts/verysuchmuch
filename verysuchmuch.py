@@ -5,16 +5,13 @@ import time
 import os
 import math
 import re
-
 import imaplib
-
-# import urllib2
-# import poplib
-# from email import parser
+import time
 
 from flask import Flask, render_template, redirect, url_for, request, Response, abort, make_response, flash
 from pymongo import Connection
 from functools import wraps
+from threading import Timer
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -164,23 +161,27 @@ def parse_email(message):
         email = bodyMatch.group(5).lower()
         print amount
         print email
+        if db[collection].find({'email': email}).count() is 0:
+            print "Payment sent from email with no open orders"
+            validFlag = False            
 
     if validFlag:
         amount = float(amount)
         dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
 
+        
         emailAndWalletDoc = db[collection].find({'email': email})[0]
         dogeAddress = emailAndWalletDoc['dogeAddress']
         db[collection].remove({'_id': emailAndWalletDoc['_id']})
 
         print str(dogeAmount)
         print dogeAddress
+        print "doge would be sent here if not testing"
         #print "sending"
         #send_doge(dogeAmount, dogeAddress)
 
-
-@app.route('/get_mail')
 def get_mail():
+    print "Checking mail"
     mail = imaplib.IMAP4_SSL('imap.gmail.com', '993')
     mail.login('verysuchmuch', app.config['EMAIL_PASSWORD'])
     mail.select('wallet')
@@ -193,12 +194,20 @@ def get_mail():
 
     mail.close()
     mail.logout()
+    print "Consider your mail checked"
     return "done"
 
+def mail_cron_job():
+    secondsWait = 60
+    get_mail()
+    Timer(secondsWait, mail_cron_job, ()).start()
+
+mail_cron_job()
 
 # App Configuration
 # This section holds all application specific configuration options.
 
 if __name__ == '__main__':
-	app.debug=True
-	app.run(host='0.0.0.0', port=5555,  processes=3)
+    app.debug=True
+    #use_reloader is set to false so mail cron job is only called once
+    app.run(host='0.0.0.0', port=5555,  processes=3, use_reloader=False)
