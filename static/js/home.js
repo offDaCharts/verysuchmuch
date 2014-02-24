@@ -10,7 +10,7 @@ $(function() {
             },
             //Failure handler
             failureHandler = function(purchaseActionError) {
-                alert("So... Something went wrong. The payment has been canceled and you won't be charged. If the problem persists, email us at support@verysuchmuch.com")
+                alert("So... Something went wrong. The payment has been canceled and you won't be charged. If the problem persists, email us at support@verysuchmuch.com");
                 console.log("Purchase did not complete.", purchaseActionError);
             },
             createOrder = function(emailAddress, dogeAddress, dogeAmount) {
@@ -21,20 +21,20 @@ $(function() {
                             $("#modalErrorMessage")
                                 .text("There already exists an order with this email or Doge address" +
                                     "Please complete that order or wait 30minutes to cancel")
-                                .show()
+                                .show();
                         } else if (message === "Limit Exceeded") {
                             console.log(1);
                             //1000$/day limit
                             $("#modalErrorMessage")
                                 .text("You are not allowed to buy more than $1000 in a 24hour peroid")
-                                .show()
+                                .show();
                         } else {
                             //Order Placed
                             $("#modalErrorMessage")
                                 .removeClass("alert-danger")
                                 .addClass("alert-success")
                                 .text("Order Placed")
-                                .show()
+                                .show();
                         }
                     }
                 );
