@@ -96,6 +96,7 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
                 'dogeAddress' : dogeAddress,
                 'dogeAmount' : dogeAmount,
                 'dollarAmount' : dollarAmount,
+                'dogeToDollarRate' : get_dogeToDollarRate(),
                 'initTime' : int(time.time()),
                 'expTime' : int(time.time()) + minutesTilExpire * 60
             })
@@ -180,7 +181,7 @@ def send_doge(amount=None, address=None):
 def parse_email(message):
     ordersCollection = 'orders'
     purchasesCollection = 'purchases'
-    
+
     validFlag = True
     header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
     body = message[len(header):]
@@ -191,20 +192,26 @@ def parse_email(message):
     if bodyMatch is None:
         validFlag = False
     else:
-        dollarAmount = bodyMatch.group(3)
+        dollarAmount = float(bodyMatch.group(3))
         email = bodyMatch.group(5).lower()
         print dollarAmount
         print email
         if db[ordersCollection].find({'email': email}).count() is 0:
             print "Payment sent from email with no open orders"
-            validFlag = False            
+            validFlag = False
 
     if validFlag:
-        dollarAmount = float(dollarAmount)
-        dogeAmount = int(math.floor(dollarAmount/float(get_dogeToDollarRate())))
         orderDoc = db[ordersCollection].find({'email': email})[0]
-        dogeAddress = orderDoc['dogeAddress']
 
+        if dollarAmount >= float(orderDoc.dollarAmount):
+            #If they try to buy more than ordered, they will only get sent the amount they ordered
+            dollarAmount = float(orderDoc['dollarAmount'])
+            dogeAmount = float(orderDoc['dogeAmount'])
+        else:
+            #If they send less than what they ordered, then they will be given what they pay for
+            dogeAmount = int(math.floor(dollarAmount/float(get_dogeToDollarRate())))
+
+        dogeAddress = orderDoc['dogeAddress']
         db[ordersCollection].remove({'_id': orderDoc['_id']})
         db[purchasesCollection].insert({
             'email' : emailAddress,
