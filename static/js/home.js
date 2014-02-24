@@ -2,18 +2,18 @@ $(function() {
     $.get("/dogeToDollarRate", function (dogeToDollarRate) {
         var dollarToDogeRate = 1/dogeToDollarRate;
             //Success handler
-            successHandler = function(purchaseAction){
+            successHandler = function(purchaseAction) {
                 $.post("/success_jwt", {'jwt': purchaseAction.jwt}, function (data) {
                    //Here we'll tell the user to check their doge wallet for the Doge!
                     document.location.href = '/thankyou';
                 });
             },
             //Failure handler
-            failureHandler = function(purchaseActionError){
+            failureHandler = function(purchaseActionError) {
                 alert("So... Something went wrong. The payment has been canceled and you won't be charged. If the problem persists, email us at support@verysuchmuch.com")
                 console.log("Purchase did not complete.", purchaseActionError);
             },
-            purchase = function(dogeAmount, dogeAddress){
+            purchase = function(dogeAmount, dogeAddress) {
                 $.get("/jwt/" + dogeAmount + "/" + dogeAddress,
                     function(generatedJwt) {
                         google.payments.inapp.buy({
@@ -85,7 +85,6 @@ $(function() {
             if(validate() && dogeWallet.length) {
                 $.get("/get_current_balance",
                     function(balance) {
-                        balance = balance.replace(/\"/g, "");
                         balance = +balance * 0.995;
                         if (+balance >= +flooredDoge) {
                             purchase(flooredDoge, dogeWallet);
@@ -102,7 +101,6 @@ $(function() {
         });
         $.get("/get_current_balance", 
             function(balance){
-                balance = balance.replace(/\"/g, "");
                 if (balance < 1000) {
                     $(".sold-out").modal('show');
                     $("#purchaseButton").prop('disabled', true);

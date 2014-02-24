@@ -91,7 +91,7 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
             db[ordersCollection].insert({
                 'email' : emailAddress,
                 'dogeAddress' : dogeAddress,
-                'dogeAmount' : dogeAmount,
+                'dogeAmount' : float(dogeAmount),
                 'dollarAmount' : dollarAmount,
                 'dogeToDollarRate' : get_dogeToDollarRate(),
                 'initTime' : int(time.time()),
@@ -154,9 +154,26 @@ def get_doge_pay_price():
 
 # DogeAPI Routes
 
+@app.route('/get_dogeAPI_balance')
+def get_dogeAPI_balance():
+    return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL), verify=False).text.replace('"', '')
+
 @app.route('/get_current_balance')
 def get_balance():
-    return requests.get('{0}get_balance'.format(DOGEPAY_BASE_URL), verify=False).text
+    balance = float(get_dogeAPI_balance())
+    ordersResult = db.orders.aggregate([{'$group': {'_id': '', 'sum': {'$sum': '$dogeAmount'}}}])['result']
+    if len(ordersResult) > 0:
+        balance = balance - float(ordersResult[0]['sum'])
+
+    #Subtract purchases in last 10min incase doge api hasn't updated with most recent purchases
+    purchasesResult = db.purchases.aggregate([
+        {'$match':{'time': {'$gt' : time.time() - 10*60}}}, 
+        {'$group': {'_id': '', 'sum': {'$sum': '$dogeAmount'}}}
+    ])['result']
+    if len(purchasesResult) > 0:
+        balance = balance - float(purchasesResult[0]['sum'])
+
+    return str(balance)
 
 def get_market_dogeToDollarRate():
     return requests.get('{0}get_current_price&amount_doge=1000'.format(DOGEPAY_BASE_URL), verify=False).text
@@ -202,7 +219,7 @@ def parse_email(message):
         if dollarAmount >= float(orderDoc['dollarAmount']):
             #If they try to buy more than ordered, they will only get sent the amount they ordered
             dollarAmount = float(orderDoc['dollarAmount'])
-            dogeAmount = float(orderDoc['dogeAmount'])
+            dogeAmount = int(orderDoc['dogeAmount'])
         else:
             #If they send less than what they ordered, then they will be given what they pay for
             dogeAmount = int(math.floor(dollarAmount/float(get_dogeToDollarRate())))
@@ -213,6 +230,7 @@ def parse_email(message):
             'email' : email,
             'dogeAddress' : dogeAddress,
             'dollarAmount' : dollarAmount,
+            'dogeAmount' : dogeAmount,
             'time' : time.time()
         })
 
@@ -241,10 +259,10 @@ def check_mail():
 
 def mail_cron_job():
     #Runs every minute
-    secondsWait = 15
+    secondsWait = 60
+    Timer(secondsWait, mail_cron_job, ()).start()
     check_mail()
     clearExpiredOrders()
-    Timer(secondsWait, mail_cron_job, ()).start()
 
 mail_cron_job()
 
