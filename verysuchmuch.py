@@ -72,11 +72,11 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
     ordersCollection = 'orders'
     purchasesCollection = 'purchases'
     dollarAmount = math.ceil(100 * float(get_dogeToDollarRate()) * float(dogeAmount)) / 100
-    insertError = 0
+    returnMessage = 'Success'
 
     if (db[ordersCollection].find({'email': emailAddress}).count() is not 0 or
      db[ordersCollection].find({'dogeAddress': dogeAddress}).count() is not 0):
-        insertError = 1
+        insertError = 'Existing Order'
         #Needs to display this error to user
         print "There already exists a current order with this email or doge address"
     else: 
@@ -99,11 +99,10 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
             })
             print 'Order Created'
         else:
-            insertError = 2
+            returnMessage = 'Limit Exceeded'
             #Need to display this error to user
             print "A single person cannot order more than $1000 in a 24 hour peroid"
-
-    return str(insertError)
+    return returnMessage
 
 def clearExpiredOrders():
     print "Checking for expired orders"
@@ -258,8 +257,8 @@ def check_mail():
     return "Done"
 
 def mail_cron_job():
-    #Runs every minute
-    secondsWait = 60
+    #Runs every half minute
+    secondsWait = 30
     Timer(secondsWait, mail_cron_job, ()).start()
     check_mail()
     clearExpiredOrders()

@@ -38,6 +38,33 @@
     <div class="alert alert-danger" style="display: none;" id="errorMessage"></div>
   </div>
 </div>
+
+<div class="modal create-order">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h2 class="modal-title">Place an Order</h2>
+      </div>
+      <div id="createOrderBody" class="modal-body">
+        <h4>New Payment System with Direct Payments through Google Wallet!</h4>
+        <p>Due to Google Merchant Fees, our checkout process has changed to direct Google Wallet payments</p>
+        <p>Once you click "Submit Order," an order will be placed with your email and Doge wallet. You must then send the payment for your order through Google Wallet to verysuchmuch@gmail.com within 30min of placing your order. Please leave the optional message blank or your payment may not be processed correctly. Once your payment is sent, the Doge will be sent to your account within a few minutes. Please confirm your order below and enter the Google Wallet gmail from which you will be sending your payment.</p>
+        <br>
+        <p>You are buying <span id="modalDogeAmount"></span> Doge to Wallet Address <span id="modalDogeAddress"></span> for <span id="modalDollarAmount"></span> dollars.</p>
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label for="email">Google Wallet Email</label>
+            <input type="text" class="form-control" id="email" placeholder="Email Address">
+          </div>
+        </form>
+        <button id="createOrderButton" class="btn btn-default">Submit Order</button>
+        <div class="alert alert-danger" style="display: none;" id="modalErrorMessage">test</div>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <div class="modal fade sold-out">
   <div class="modal-dialog">
     <div class="modal-content">

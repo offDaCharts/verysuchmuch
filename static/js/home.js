@@ -13,6 +13,42 @@ $(function() {
                 alert("So... Something went wrong. The payment has been canceled and you won't be charged. If the problem persists, email us at support@verysuchmuch.com")
                 console.log("Purchase did not complete.", purchaseActionError);
             },
+            createOrder = function(emailAddress, dogeAddress, dogeAmount) {
+                $.get("/createOrder/" + emailAddress + "/" + dogeAddress + "/" + dogeAmount,
+                    function(message) {
+                        if (message === "Existing Order") {
+                            //pre existing order exists
+                            $("#modalErrorMessage")
+                                .text("There already exists an order with this email or Doge address" +
+                                    "Please complete that order or wait 30minutes to cancel")
+                                .show()
+                        } else if (message === "Limit Exceeded") {
+                            console.log(1);
+                            //1000$/day limit
+                            $("#modalErrorMessage")
+                                .text("You are not allowed to buy more than $1000 in a 24hour peroid")
+                                .show()
+                        } else {
+                            //Order Placed
+                            $("#modalErrorMessage")
+                                .removeClass("alert-danger")
+                                .addClass("alert-success")
+                                .text("Order Placed")
+                                .show()
+                        }
+                    }
+                );
+            },
+            showCreateOrderModal = function(dogeAmount, dogeWallet, dollarAmount) {
+                $("#modalDogeAmount").text(dogeAmount);
+                $("#modalDogeAddress").text(dogeWallet);
+                $("#modalDollarAmount").text(dollarAmount);
+                $("#createOrderButton").unbind();
+                $("#createOrderButton").click(function() {
+                    createOrder($("#email").val(), dogeWallet, dogeAmount);
+                });
+                $(".create-order").modal("show");
+            },
             purchase = function(dogeAmount, dogeAddress) {
                 $.get("/jwt/" + dogeAmount + "/" + dogeAddress,
                     function(generatedJwt) {
@@ -75,7 +111,8 @@ $(function() {
                 $("#dogeAmount").val(Math.floor(+$("#dollarAmount").val()*dollarToDogeRate));
             }
 
-            var flooredDoge = Math.floor(+$("#dogeAmount").val()),
+            //var flooredDoge = Math.floor(+$("#dogeAmount").val()),
+            var flooredDoge = Math.round(+$("#dogeAmount").val()),
                 dollarRoundedUpCent = Math.ceil(+$("#dollarAmount").val()*100)/100,
                 dogeWallet = $("#dogeWallet").val();
 
@@ -87,7 +124,10 @@ $(function() {
                     function(balance) {
                         balance = +balance * 0.995;
                         if (+balance >= +flooredDoge) {
-                            purchase(flooredDoge, dogeWallet);
+                            showCreateOrderModal(flooredDoge, dogeWallet, dollarRoundedUpCent);
+
+                            //The old way with google merchant
+                            //purchase(flooredDoge, dogeWallet);
                         } else {
                             $("#errorMessage").show();                
                             $("#errorMessage").text("Sorry, we currently only have " + Math.floor(balance) +
