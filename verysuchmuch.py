@@ -71,17 +71,14 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
     emailAddress = emailAddress.lower()
     ordersCollection = 'orders'
     purchasesCollection = 'purchases'
-    dollarAmount = float(get_dogeToDollarRate()) * dogeAmount
+    dollarAmount = math.ceil(100 * float(get_dogeToDollarRate()) * float(dogeAmount)) / 100
     insertError = 0
-    print emailAddress
-    print dogeAddress
 
     if (db[ordersCollection].find({'email': emailAddress}).count() is not 0 or
      db[ordersCollection].find({'dogeAddress': dogeAddress}).count() is not 0):
         insertError = 1
         #Needs to display this error to user
         print "There already exists a current order with this email or doge address"
-        print "Please complete your order or wait 30min to cancel"
     else: 
         secondsInDay = 60 * 60 * 24
         result = db.purchases.aggregate([
@@ -100,6 +97,7 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
                 'initTime' : int(time.time()),
                 'expTime' : int(time.time()) + minutesTilExpire * 60
             })
+            print 'Order Created'
         else:
             insertError = 2
             #Need to display this error to user
@@ -115,8 +113,7 @@ def clearExpiredOrders():
         if time.time() > doc['expTime']:
             print "Removing expired order"
             db[collection].remove({'_id': doc['_id']})
-    print "Expired orders checked and cleared"
-
+    print "Expired orders checked and cleared\n"
 
 
 @app.route('/success_jwt', methods=["POST"])
@@ -194,8 +191,7 @@ def parse_email(message):
     else:
         dollarAmount = float(bodyMatch.group(3))
         email = bodyMatch.group(5).lower()
-        print dollarAmount
-        print email
+        print dollarAmount, email
         if db[ordersCollection].find({'email': email}).count() is 0:
             print "Payment sent from email with no open orders"
             validFlag = False
@@ -203,7 +199,7 @@ def parse_email(message):
     if validFlag:
         orderDoc = db[ordersCollection].find({'email': email})[0]
 
-        if dollarAmount >= float(orderDoc.dollarAmount):
+        if dollarAmount >= float(orderDoc['dollarAmount']):
             #If they try to buy more than ordered, they will only get sent the amount they ordered
             dollarAmount = float(orderDoc['dollarAmount'])
             dogeAmount = float(orderDoc['dogeAmount'])
@@ -214,17 +210,17 @@ def parse_email(message):
         dogeAddress = orderDoc['dogeAddress']
         db[ordersCollection].remove({'_id': orderDoc['_id']})
         db[purchasesCollection].insert({
-            'email' : emailAddress,
-            'dogeAddress' : dogeAddress
+            'email' : email,
+            'dogeAddress' : dogeAddress,
             'dollarAmount' : dollarAmount,
             'time' : time.time()
         })
 
         print str(dogeAmount)
         print dogeAddress
-        print "doge would be sent here if not testing"
-        #print "sending"
-        #send_doge(dogeAmount, dogeAddress)
+        #print "doge would be sent here if not testing"
+        print "sending"
+        send_doge(dogeAmount, dogeAddress)
 
 def check_mail():
     print "Checking mail"
@@ -240,12 +236,12 @@ def check_mail():
 
     mail.close()
     mail.logout()
-    print "Consider your mail checked"
+    print "Consider your mail checked\n"
     return "Done"
 
 def mail_cron_job():
     #Runs every minute
-    secondsWait = 60
+    secondsWait = 15
     check_mail()
     clearExpiredOrders()
     Timer(secondsWait, mail_cron_job, ()).start()
