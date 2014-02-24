@@ -66,30 +66,49 @@ def getJWT(dogeAmount, dogeAddress):
         },
         app.config['SELLER_SECRET'])
 
-@app.route('/emailAndWallet/<emailAddress>/<dogeAddress>')
-def addEmailandWalletPair(emailAddress, dogeAddress):
-    collection = 'emailAndWallet'
-    insertSuccess = True
+@app.route('/createOrder/<emailAddress>/<dogeAddress>/<dogeAmount>')
+def createOrder(emailAddress, dogeAddress, dogeAmount):
+    emailAddress = emailAddress.lower()
+    ordersCollection = 'orders'
+    purchasesCollection = 'purchases'
+    dollarAmount = float(get_dogeToDollarRate()) * dogeAmount
+    insertError = 0
     print emailAddress
     print dogeAddress
-    if (db[collection].find({'email': emailAddress.lower()}).count() is not 0 or
-     db[collection].find({'dogeAddress': dogeAddress}).count() is not 0):
-        insertSuccess = False
+
+    if (db[ordersCollection].find({'email': emailAddress}).count() is not 0 or
+     db[ordersCollection].find({'dogeAddress': dogeAddress}).count() is not 0):
+        insertError = 1
+        #Needs to display this error to user
         print "There already exists a current order with this email or doge address"
         print "Please complete your order or wait 30min to cancel"
     else: 
-        minutesTilExpire = 30
-        db[collection].insert({
-            'email' : emailAddress,
-            'dogeAddress' : dogeAddress,
-            'initTime' : int(time.time()),
-            'expTime' : int(time.time()) + minutesTilExpire*60
-        })
-    return str(insertSuccess)
+        secondsInDay = 60 * 60 * 24
+        result = db.purchases.aggregate([
+            {'$match':{'email': emailAddress, 'time': {'$gt' : time.time() - secondsInDay}}}, 
+            {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
+        ])['result']
+
+        if len(result) is 0 or (result[0]['sum'] + dollarAmount) < 1000:
+            minutesTilExpire = 30
+            db[ordersCollection].insert({
+                'email' : emailAddress,
+                'dogeAddress' : dogeAddress,
+                'dogeAmount' : dogeAmount,
+                'dollarAmount' : dollarAmount,
+                'initTime' : int(time.time()),
+                'expTime' : int(time.time()) + minutesTilExpire * 60
+            })
+        else:
+            insertError = 2
+            #Need to display this error to user
+            print "A single person cannot order more than $1000 in a 24 hour peroid"
+
+    return str(insertError)
 
 def clearExpiredOrders():
     print "Checking for expired orders"
-    collection = 'emailAndWallet'
+    collection = 'orders'
     cursor = db[collection].find()
     for doc in cursor:
         if time.time() > doc['expTime']:
@@ -159,7 +178,9 @@ def send_doge(amount=None, address=None):
 # Mail Routes
 
 def parse_email(message):
-    collection = 'emailAndWallet'
+    ordersCollection = 'orders'
+    purchasesCollection = 'purchases'
+    
     validFlag = True
     header = re.match(r'^(((?!Subject)[^$])*)(Subject)', message).group()
     body = message[len(header):]
@@ -170,22 +191,27 @@ def parse_email(message):
     if bodyMatch is None:
         validFlag = False
     else:
-        amount = bodyMatch.group(3)
+        dollarAmount = bodyMatch.group(3)
         email = bodyMatch.group(5).lower()
-        print amount
+        print dollarAmount
         print email
-        if db[collection].find({'email': email}).count() is 0:
+        if db[ordersCollection].find({'email': email}).count() is 0:
             print "Payment sent from email with no open orders"
             validFlag = False            
 
     if validFlag:
-        amount = float(amount)
-        dogeAmount = int(math.floor(amount/float(get_dogeToDollarRate())))
+        dollarAmount = float(dollarAmount)
+        dogeAmount = int(math.floor(dollarAmount/float(get_dogeToDollarRate())))
+        orderDoc = db[ordersCollection].find({'email': email})[0]
+        dogeAddress = orderDoc['dogeAddress']
 
-        
-        emailAndWalletDoc = db[collection].find({'email': email})[0]
-        dogeAddress = emailAndWalletDoc['dogeAddress']
-        db[collection].remove({'_id': emailAndWalletDoc['_id']})
+        db[ordersCollection].remove({'_id': orderDoc['_id']})
+        db[purchasesCollection].insert({
+            'email' : emailAddress,
+            'dogeAddress' : dogeAddress
+            'dollarAmount' : dollarAmount,
+            'time' : time.time()
+        })
 
         print str(dogeAmount)
         print dogeAddress
@@ -208,7 +234,7 @@ def check_mail():
     mail.close()
     mail.logout()
     print "Consider your mail checked"
-    return "done"
+    return "Done"
 
 def mail_cron_job():
     #Runs every minute
