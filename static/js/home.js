@@ -150,7 +150,7 @@ $(function() {
         $.get("/get_doge_sold", //Here we display how much doge we've sold!
             function(dogeSold) {
                 $('#dogeSold').toggleClass("hidden");
-                $('.odometer').text(dogeSold);        
+                $('.odometer').text(+dogeSold-1);
         });
     });
 });
