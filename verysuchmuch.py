@@ -135,6 +135,18 @@ def successful_purchase():
         resp = make_response(json.dumps("No Transaction Executed."), 501)
         resp.headers.extend({})
         return resp
+
+@app.route('/get_doge_sold')
+def get_doge_sold():
+    total = 0
+    purchasesResult = db.purchases.aggregate([{'$group': {'_id': '', 'sum': {'$sum': '$dogeAmount'}}}])['result']
+    if len(purchasesResult) is not 0:
+        total = total + purchasesResult[0]['sum']
+    transactionsResult = db.transactions.aggregate([{'$group': {'_id': '', 'sum': {'$sum': '$dogeAmount'}}}])['result']
+    if len(transactionsResult) is not 0:
+        total = total + transactionsResult[0]['sum']
+    return str(total)
+
         
 #Dogepay Route
 
