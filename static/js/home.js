@@ -146,5 +146,11 @@ $(function() {
                     $("#purchaseButton").prop('disabled', true);
                 }
         });
+        
+        $.get("/get_doge_sold", //Here we display how much doge we've sold!
+            function(dogeSold) {
+                $('#dogeSold').toggleClass("hidden");
+                $('.odometer').text(dogeSold);        
+        });
     });
 });

@@ -1,6 +1,7 @@
 {% extends "basePage.html" %}
 {% block css %}
     <link href="/static/css/home.css" rel="stylesheet">
+    <link href="/static/lib/odometer/odometer-theme-minimal.css" rel="stylesheet">
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -8,6 +9,7 @@
       <h1 class="center">Welcome!</h1>
       <h3>Very Coin, Such Easy, Much Satisfy</h3>
       <p>It's pretty simple, because that's how DogeCoin should be! Enter your desired amount, Pay through Google Wallet, Get your Doge!</p>
+      <p id="dogeSold" class="hidden"><strong>Over: <span class="odometer"></span> Doge Sold!</strong></p>
       <img src="/static/images/Dogecoin_logo.png"></img>
     </legend>
   </div>
@@ -90,5 +92,6 @@
     <script src="https://wallet.google.com/inapp/lib/buy.js"></script>
     <!--<script src="https://sandbox.google.com/checkout/inapp/lib/buy.js"></script>
 -->
+    <script src="/static/lib/odometer/odometer.min.js"></script>
     <script src="/static/js/home.js"></script>
 {% endblock %}
