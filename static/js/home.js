@@ -29,7 +29,7 @@ $(function() {
                                 //.text("You are not allowed to buy more than $1000 in a 24hour peroid")
                             $("#modalErrorMessage")
                                 .text("We're sorry, we can only sell " + message + " more dollars worth" +
-                                      "to stay within our current daily limits")
+                                      "to stay within our current 24 hour limit. Come back tomorrow!")
                                 .show();
                         } else {
                             //Order Placed
