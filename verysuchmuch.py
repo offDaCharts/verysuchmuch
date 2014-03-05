@@ -95,14 +95,14 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
 
         purchaseResult = db.purchases.aggregate([
             {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
-            {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
+            {'$group': {'_id': '', 'sum': {'$sum': '$dollarAmount'}}}
         ])['result']
         if len(purchaseResult) is not 0:
             totalToday += purchaseResult[0]['sum']
 
         ordersResult = db.orders.aggregate([
             {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
-            {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
+            {'$group': {'_id': '', 'sum': {'$sum': '$dollarAmount'}}}
         ])['result']
         if len(ordersResult) is not 0:
             totalToday += ordersResult[0]['sum']
@@ -121,7 +121,10 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
             print 'Order Created'
         else:
             #If a limit is exceeded, then the amount left before the limit is returned
-            returnMessage = str(dailyLimit - totalToday)
+            returnMessage = dailyLimit - totalToday
+            if returnMessage < 0:
+                returnMessage = 0
+            returnMessage = str(returnMessage)
             #Need to display this error to user
             print "Limit Exceeded"
     return returnMessage
