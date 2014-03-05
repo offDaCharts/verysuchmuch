@@ -22,11 +22,14 @@ $(function() {
                                 .text("There already exists an order with this email or Doge address" +
                                     "Please complete that order or wait 30minutes to cancel")
                                 .show();
-                        } else if (message === "Limit Exceeded") {
-                            console.log(1);
+                        } else if (!isNaN(+message)) {
+                            //Limit exceeded, message is that amount left remaining before limit
                             //1000$/day limit
+                            //$("#modalErrorMessage")
+                                //.text("You are not allowed to buy more than $1000 in a 24hour peroid")
                             $("#modalErrorMessage")
-                                .text("You are not allowed to buy more than $1000 in a 24hour peroid")
+                                .text("We're sorry, we can only sell " + message + " more dollars worth" +
+                                      "to stay within our current daily limits")
                                 .show();
                         } else {
                             //Order Placed
@@ -47,6 +50,10 @@ $(function() {
                 $("#createOrderButton").click(function() {
                     createOrder($("#email").val(), dogeWallet, dogeAmount);
                 });
+                $("#modalErrorMessage")
+                    .removeClass("alert-success")
+                    .addClass("alert-danger")
+                    .hide()
                 $(".create-order").modal("show");
             },
             purchase = function(dogeAmount, dogeAddress) {

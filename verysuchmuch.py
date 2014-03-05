@@ -76,17 +76,38 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
 
     if (db[ordersCollection].find({'email': emailAddress}).count() is not 0 or
      db[ordersCollection].find({'dogeAddress': dogeAddress}).count() is not 0):
-        insertError = 'Existing Order'
+        returnMessage = 'Existing Order'
         #Needs to display this error to user
         print "There already exists a current order with this email or doge address"
     else: 
         secondsInDay = 60 * 60 * 24
-        result = db.purchases.aggregate([
-            {'$match':{'email': emailAddress, 'time': {'$gt' : time.time() - secondsInDay}}}, 
+        dailyLimit = 500
+
+        #Error checking for individual daily limit of $1000
+        # result = db.purchases.aggregate([
+        #     {'$match':{'email': emailAddress, 'time': {'$gt' : time.time() - secondsInDay}}}, 
+        #     {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
+        # ])['result']
+        # if len(result) is 0 or (result[0]['sum'] + dollarAmount) < 1000:
+
+        #Limiting our daily limit of 500
+        totalToday = 0
+
+        purchaseResult = db.purchases.aggregate([
+            {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
             {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
         ])['result']
+        if len(purchaseResult) is not 0:
+            totalToday += purchaseResult[0]['sum']
 
-        if len(result) is 0 or (result[0]['sum'] + dollarAmount) < 1000:
+        ordersResult = db.orders.aggregate([
+            {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
+            {'$group': {'_id': '$email', 'sum': {'$sum': '$dollarAmount'}}}
+        ])['result']
+        if len(ordersResult) is not 0:
+            totalToday += ordersResult[0]['sum']
+
+        if dollarAmount < dailyLimit and ((totalToday + dollarAmount) < dailyLimit):
             minutesTilExpire = 30
             db[ordersCollection].insert({
                 'email' : emailAddress,
@@ -94,14 +115,15 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
                 'dogeAmount' : float(dogeAmount),
                 'dollarAmount' : dollarAmount,
                 'dogeToDollarRate' : get_dogeToDollarRate(),
-                'initTime' : int(time.time()),
+                'time' : int(time.time()),
                 'expTime' : int(time.time()) + minutesTilExpire * 60
             })
             print 'Order Created'
         else:
-            returnMessage = 'Limit Exceeded'
+            #If a limit is exceeded, then the amount left before the limit is returned
+            returnMessage = str(dailyLimit - totalToday)
             #Need to display this error to user
-            print "A single person cannot order more than $1000 in a 24 hour peroid"
+            print "Limit Exceeded"
     return returnMessage
 
 def clearExpiredOrders():
