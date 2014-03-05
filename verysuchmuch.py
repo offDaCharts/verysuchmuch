@@ -12,6 +12,7 @@ from flask import Flask, render_template, redirect, url_for, request, Response, 
 from pymongo import Connection
 from functools import wraps
 from threading import Timer
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -81,6 +82,9 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
         print "There already exists a current order with this email or doge address"
     else: 
         secondsInDay = 60 * 60 * 24
+        now = datetime.now()
+        secondsSinceMidnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+
         dailyLimit = 500
 
         #Error checking for individual daily limit of $1000
@@ -94,14 +98,14 @@ def createOrder(emailAddress, dogeAddress, dogeAmount):
         totalToday = 0
 
         purchaseResult = db.purchases.aggregate([
-            {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
+            {'$match':{'time': {'$gt' : time.time() - secondsSinceMidnight}}}, 
             {'$group': {'_id': '', 'sum': {'$sum': '$dollarAmount'}}}
         ])['result']
         if len(purchaseResult) is not 0:
             totalToday += purchaseResult[0]['sum']
 
         ordersResult = db.orders.aggregate([
-            {'$match':{'time': {'$gt' : time.time() - secondsInDay}}}, 
+            {'$match':{'time': {'$gt' : time.time() - secondsSinceMidnight}}}, 
             {'$group': {'_id': '', 'sum': {'$sum': '$dollarAmount'}}}
         ])['result']
         if len(ordersResult) is not 0:
